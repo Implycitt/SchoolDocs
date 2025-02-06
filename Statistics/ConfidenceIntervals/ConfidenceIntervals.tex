@@ -1,0 +1,270 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{amsmath, statistics, mathtools, amssymb, tikz, xcolor, pgfplots, amsthm}
+\pgfplotsset{compat=1.7}
+\title{Confidence Intervals}
+
+\newtheorem{theorem}{Theorem}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newtheorem{exmp}{Example}[section]
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\pgfmathdeclarefunction{gauss}{3}{%
+  \pgfmathparse{1/(#3*sqrt(2*pi))*exp(-((#1-#2)^2)/(2*#3^2))}%
+}
+
+\newcommand{\normaldist}{
+\begin{tikzpicture}
+\begin{axis}[
+  no markers, 
+  domain=0:6, 
+  samples=100,
+  ymin=0,
+  axis lines*=left, 
+  xlabel=$x$,
+  every axis y label/.style={at=(current axis.above origin),anchor=south},
+  every axis x label/.style={at=(current axis.right of origin),anchor=west},
+  height=5cm, 
+  width=12cm,
+  xtick=\empty, 
+  ytick=\empty,
+  enlargelimits=false, 
+  clip=false, 
+  axis on top,
+  grid = major,
+  hide y axis
+  ]
+
+\addplot [very thick,cyan!50!black] {gauss(x, 3, 1)};
+
+\pgfmathsetmacro\valueA{gauss(1,3,1)}
+\pgfmathsetmacro\valueB{gauss(2,3,1)}
+\draw [gray] (axis cs:1,0) -- (axis cs:1,\valueA)
+    (axis cs:5,0) -- (axis cs:5,\valueA);
+\draw [gray] (axis cs:2,0) -- (axis cs:2,\valueB)
+    (axis cs:4,0) -- (axis cs:4,\valueB);
+\draw [yshift=0.3cm, latex-latex](axis cs:1, 0) -- node [fill=white] {$0.95$} (axis cs:5, 0);
+
+\node[below] at (axis cs:1, 0)  {$\mu - 2\sigma$}; 
+\node[below] at (axis cs:2, 0)  {$\mu - \sigma$}; 
+\node[below] at (axis cs:3, 0)  {$\mu$}; 
+\node[below] at (axis cs:4, 0)  {$\mu + \sigma$}; 
+\node[below] at (axis cs:5, 0)  {$\mu + 2\sigma$}; 
+
+\end{axis}
+\end{tikzpicture}
+}
+
+\section{Definitions and Variables}
+
+\begin{definition}[Confidence Interval]
+  An interval computed from sample data that provides a range of plausible values for a population parameter.
+\end{definition}
+
+\begin{definition}[Confidence Level]
+  A number that tells how "confident" we are in the interval.
+\end{definition}
+
+\begin{definition}[$z^{*}$] \label{critz}
+  Critical Z value or critical value is the number of standard deviations a data point needs
+  to be from the mean to be considered statistically significant in the population.\\
+  There are two methods to finding $z^{*}$:\\
+  \begin{enumerate}
+    \item using the formula 
+    \begin{equation}
+      \begin{aligned}
+        z^{*} = \frac{\bar{x} - \mu}{\frac{\sigma}{\sqrt{n}}}
+      \end{aligned}
+    \end{equation}
+    \item using the calculator: 
+    \begin{itemize}
+      \item 2nd + vars
+      \item 3. or invNorm()
+      \item tail as center and use the given area, the positive number will be your $z^{*}$
+      \item likewise, tail as left, take 1 - area and divide by 2
+    \end{itemize}
+  \end{enumerate}
+\end{definition}
+
+\begin{definition}[$t^{*}$]
+  The critical t value is a "cut off point" which helps you decide whether to support
+  or reject a null hypothesis; If the test lays within our interval then we can support otherwise we can reject.\\
+  There are two methods to finding $t^{*}$:\\
+  \begin{enumerate}
+    \item using the formula 
+    \begin{equation}
+      \begin{aligned}
+        t^{*} = \frac{\bar{x} - \mu}{\frac{S_x}{\sqrt{n}}}
+      \end{aligned}
+    \end{equation}
+    \item using the calculator: 
+    \begin{itemize}
+      \item 2nd + vars
+      \item 4. or invT()
+      \item area = 1 - given percent divided by 2
+      \item DF as sample size - 1
+    \end{itemize}
+  \end{enumerate}
+\end{definition}
+
+\begin{definition}[$\hat{p}$]
+  Point estimate, the midpoint of the confidence interval and the value of a statistic that estimates
+  the parameter of interest.
+\end{definition}
+
+\begin{definition}[Level of Confidence]
+  The expected proportion of intervals that will contain the parameter if many samples are taken.\\
+  \begin{exmp}
+    A 95\% level of confidence means that we expect 95\% of all confidence intervals to contain the true
+    population parameter.
+  \end{exmp}
+\end{definition}
+
+\begin{definition}[Margin of Error]
+  Also denoted as ME, is the distance from the point estimate and the upper bound given as the second number
+  in the range of the confidence interval.
+\end{definition}
+
+\begin{definition}[Standard Error] \label{standerr}
+  Also denoted as SE, is the standard deviation of a sampling distribution or an estimate of that standard deviation.
+\end{definition}
+
+\section{Sampling Distributions}
+
+It is important that we briefly discuss sampling distributions for both means and proportions. A sample is a small subset of the population. \\
+From the sample we can get the sample statistics: $\bar{x}$, $S_x$, $\hat{p}$. \\ 
+Likewise, from the population, we can get population parameters: $\mu$, $\sigma$, p. \\
+Samples drawn at random from a given population are likely to differ. This is known as sampling variability or sampling error. 
+Sampling error can be reduced by increasing the size of the sample. The larger the sample the closer we get to the population parameter.
+To get closer to the true population measure, we can examine a sampling distribution instead of just one sample. A sampling distribution
+takes all possible samples of a given size and combines their sample statistics to make an overall data set.
+
+\subsection{Sampling Distributions - Mean}
+It is important to quickly mention that the mean of the sampling distribution will equal the population parameter or mean.
+The standard deviation will also be different if the population is AT LEAST 10 times the sample size.
+\begin{equation}
+  \begin{aligned}
+    & N \geq 10n \\
+    \Rightarrow & \sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}
+  \end{aligned}
+\end{equation}
+
+\section{Confidence Intervals}
+Confidence intervals differ slightly based on whether you are given the mean or the proportion of a distribution.\\
+We will start with focusing on proportion.
+
+\subsection{Confidence Interval - Proportions}
+
+To start off, we must establish the conditions for a sampling distribution for proportions.
+\begin{itemize}
+  \item Random - $\hat{p}$ must be from simple random samples
+  \item Normal (large enough) - number of successes and failures must both be greater than 10
+  \begin{equation}
+    N\hat{p} \geq 10 \land N(1-\hat{p}) \geq 10
+  \end{equation}
+  where N is the number of trials and $\hat{p}$ is the proportion
+  \item Independent (NOT large enough) - If we sample less than 10\% of the population, we can treat observations as independent\\
+  \begin{equation}
+    \begin{aligned}
+      & n \leq \frac{N}{10} \\
+      & N \geq 10n
+    \end{aligned}
+  \end{equation}
+\end{itemize}
+
+Next, we must understand the correlation between the critical value and the number of standard deviations from the parameter. \\
+
+\begin{figure}[!h]
+\centering
+\normaldist
+\end{figure}
+
+The above graph demonstrates that 95\% confidence would correlate to approximately 2$\sigma$ away from the parameter $\mu$.
+We can also observe that the tail ends are of equal size and respectively would be 2.5\% of the area in this example. 
+To find the area of the tail end, you may use either the formula or the calculator method described in section \ref{critz}.
+
+\subsection{Confidence Interval - One Proportion}
+
+If you are only given one sample then the 1-PropZInt() function in the calculator will be used. \\
+The calculator solves the following equation: 
+\begin{equation}
+  \begin{aligned}
+    CI = \hat{p} \pm z^{*} \sqrt{\frac{\hat{p}(1 - \hat{p})}{n}}
+  \end{aligned}
+\end{equation}
+
+\subsection{Confidence Interval - Two Proportions}
+
+Here instead we are trying to find the difference between two proportions.
+Both samples must be 
+\begin{itemize}
+  \item independent of each other,
+  \item both must pass the 10\% condition.
+\end{itemize}
+The center will be equal to the first proportion minus the second
+\begin{equation}
+  \bar{x} = \hat{p_1} - \hat{p_2}
+\end{equation}
+The standard error, defined in section \ref{standerr}, has the following equation for two proportions:
+\begin{equation}
+  SE = \sqrt{\frac{\hat{p_1}(1 - \hat{p_1})}{n_1}+\frac{\hat{p_2}(1 - \hat{p_2})}{n_2}}
+\end{equation}
+
+These problems can be trivialized using the 2-SampZInt() function.
+
+\subsection{Confidence Intervals - Mean}
+
+Means are slightly different in that we can either know or not know the population standard deviation, $\sigma$. For both one sample and two
+samples if the population standard deviation is known then $z^{*}$ can be found through either the formula or calculator method described in section \ref{critz}.
+However, it is more likely that $\sigma$ is not known and the rest of the next two sections will be under this assumption. Here the confidence interval is 
+defined as
+\begin{equation}
+  CI = \bar{x} \pm t^{*} \frac{s}{\sqrt{n}}
+\end{equation}
+For the mean, most conditions are the same as in proportions with the exception of the large enough condition. 
+\begin{itemize}
+  \item Normal (large enough) - number of samples must exceed 30
+    \begin{equation}
+      n > 30
+    \end{equation}
+\end{itemize}
+If this condition is not met, then the population must be approximately normal.
+Additionally, if we are given a data table, the condition can be checked with a box plot. If there are no outliers and it is mostly symmetrical,
+then we can assume the population is normally distributed.
+
+\subsection{Confidence Intervals - Two Means}
+
+The same assumptions can be made as the ones above except they have to apply for both samples.
+Here the equation simply subtracts both means before being added and subtracted to the margin of error:
+\begin{equation}
+  CI = \bar{x_1} - \bar{x_2} \pm t^{*} \frac{s}{\sqrt{n}}
+\end{equation}
+
+the standard error will also be as follows:
+\begin{equation}
+  SE = \sqrt{\frac{\sigma_1^{2}}{n_1}+\frac{\sigma_2^{2}}{n_2}}
+\end{equation}
+
+finally, we will derive sample size from margin of error, $z^{*}$, and $\sigma$.
+\begin{equation}
+  \begin{aligned}
+    & ME = z^{*} \times SE \\
+    & SE = \frac{\sigma}{\sqrt{n}} \\ 
+    & ME = z^{*} \frac{\sigma}{\sqrt{n}} \\
+    & ME^{2} = (z^{*})^{2} \frac{\sigma^{2}}{n} \\ 
+    & n = \lceil (z^{*})^{2} \frac{\sigma^{2}}{ME^{2}} \rceil 
+  \end{aligned}
+\end{equation}
+We round up at the end as we cannot have a fraction of a sample while also not going below the calculated value.
+
+\end{document}
